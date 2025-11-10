@@ -1,7 +1,16 @@
-import { fakeUsersDb } from 'database.ts';
+import { fakeUsersDb } from 'database.js';
 import express from 'express';
-import { type UserRegister, type User } from 'user.ts';
+import { type UserRegister, type User, type UserReturn, type UserPayload } from 'user.js';
 import type { Request, Response } from 'express';
+
+export function extractUserId(req: Request): number | null {
+    const userId: number | typeof NaN = parseInt(req.params.userId!);
+    
+    if (Number.isNaN(userId))
+        return null
+
+    return userId;
+}
 
 export function health(req: Request, res: Response): void {
     res.status(200).json({
@@ -25,4 +34,70 @@ export function register(req: Request, res: Response): void {
         res.status(201).json({
             id: newUserId
         });
+}
+
+export function logIn(req: Request, res: Response): void {
+    const userId: number | null = extractUserId(req);
+
+    if (userId === null) {
+        res.status(400).json({
+            error: 'failed to parse userId into int'
+        });
+        return;
+    }
+
+    const user: User | null = fakeUsersDb.get(userId);
+
+    if (user === null) {
+        res.status(404).json({
+            error: `failed to find user with userId: ${userId}`
+        });
+        return;
+    }
+
+    const userRet: UserReturn = {
+        id: user.id,
+        login: user.login,
+        name: user.name,
+        idk: user.idk
+    };
+
+    res.status(200).json(userRet);
+}
+
+export function update(req: Request, res: Response): void {
+    const userId: number | null = extractUserId(req);
+
+    if (userId === null) {
+        res.status(400).json({
+            error: 'failed to parse userId into int'
+        });
+        return;
+    }
+
+    const userPl: UserPayload = req.body;
+    const success: boolean = fakeUsersDb.update(userId, userPl);
+
+    if (!success) {
+        res.status(404).json({
+            error: `failed to find user with userId: ${userId}`
+        });
+        return;
+    }
+
+    res.status(200);
+}
+
+export function remove(req: Request, res: Response): void {
+    const userId: number | null = extractUserId(req);
+
+    if (userId === null) {
+        res.status(400).json({
+            error: 'failed to parse userId into int'
+        });
+        return;
+    }
+
+    fakeUsersDb.remove(userId);
+    res.status(200);
 }

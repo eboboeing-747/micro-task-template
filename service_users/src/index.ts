@@ -2,8 +2,10 @@ import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
 
-import { fakeUsersDb } from 'database.ts';
-import { health, register } from 'handler.ts';
+import { fakeUsersDb } from 'database.js';
+import { health, logIn, register, update, remove } from 'handler.js';
+
+import { afterResponseLogger } from 'middleware.js';
 
 const app: Express = express();
 const PORT = Number(process.env.PORT) || 8000;
@@ -11,6 +13,19 @@ const PORT = Number(process.env.PORT) || 8000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(afterResponseLogger);
+
+
+
+// app.get('/users/health', (req, res) => {
+// app.get('/users', (req, res) => {
+// app.post('/users', (req, res) => {
+// app.get('/users/status', (req, res) => {
+// app.get('/users/:userId', (req, res) => {
+// app.put('/users/:userId', (req, res) => {
+// app.delete('/users/:userId', (req, res) => {
+
+
 
 // Routes
 app.get('/users/health', health);
@@ -27,46 +42,11 @@ app.get('/users/status', (req, res) => {
     res.json({status: 'Users service is running'});
 });
 
-app.get('/users/:userId', (req, res) => {
-    const userId = parseInt(req.params.userId);
-    const user = fakeUsersDb[userId];
+app.get('/users/login/:userId', logIn);
 
-    if (!user) {
-        return res.status(404).json({error: 'User not found'});
-    }
+app.put('/users/update/:userId', update);
 
-    res.json(user);
-});
-
-app.put('/users/:userId', (req, res) => {
-    const userId = parseInt(req.params.userId);
-    const updates = req.body;
-
-    if (!fakeUsersDb[userId]) {
-        return res.status(404).json({error: 'User not found'});
-    }
-
-    const updatedUser = {
-        ...fakeUsersDb[userId],
-        ...updates
-    };
-
-    fakeUsersDb[userId] = updatedUser;
-    res.json(updatedUser);
-});
-
-app.delete('/users/:userId', (req, res) => {
-    const userId = parseInt(req.params.userId);
-
-    if (!fakeUsersDb[userId]) {
-        return res.status(404).json({error: 'User not found'});
-    }
-
-    const deletedUser = fakeUsersDb[userId];
-    delete fakeUsersDb[userId];
-
-    res.json({message: 'User deleted', deletedUser});
-});
+app.delete('/users/remove/:userId', remove);
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
