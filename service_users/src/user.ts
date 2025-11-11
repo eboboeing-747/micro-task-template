@@ -21,3 +21,7 @@ export interface UserReturn extends UserPayload {
     id: number;
     login: string;
 }
+
+export interface UserAuth {
+    id: number;
+}

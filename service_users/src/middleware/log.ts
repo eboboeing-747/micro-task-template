@@ -1,7 +1,7 @@
 import { fakeUsersDb } from "database.js";
-import type { NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 
-export function afterResponseLogger(req: Request, res: Response, next: NextFunction): void | Promise<void> {
+export function afterResponseLogger(req: Request, res: Response, next: NextFunction): void {
     next();
 
     console.log(fakeUsersDb.getAll());
