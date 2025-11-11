@@ -2,6 +2,7 @@ import { fakeUsersDb } from 'database.js';
 import { type UserRegister, type User, type UserReturn, type UserPayload, type UserAuth } from 'user.js';
 import type { Request, Response } from 'express';
 import { generateToken } from 'auth.js';
+import { AUTH_TOKEN_NAME } from 'auth.js';
 
 export function extractUserId(req: Request): number | null {
     const userId: number | typeof NaN = parseInt(req.params.userId!);
@@ -29,7 +30,7 @@ export function register(req: Request, res: Response): void {
     const newUserId: number | null = fakeUsersDb.add(newUser);
 
     if (newUserId === null)
-        res.status(409);
+        res.status(409).send();
     else {
         const userAuth: UserAuth = {
             id: newUserId
@@ -39,7 +40,7 @@ export function register(req: Request, res: Response): void {
 
         res
             .status(201)
-            .cookie('auth-token', `Bearer ${token}`)
+            .cookie(AUTH_TOKEN_NAME, `Bearer ${token}`)
             .json({
                 id: newUserId
             });
@@ -72,7 +73,15 @@ export function logIn(req: Request, res: Response): void {
         idk: user.idk
     };
 
-    res.status(200).json(userRet);
+    const userAuth: UserAuth = {
+        id: user.id
+    };
+
+    const token: string = generateToken(userAuth);
+    res
+        .status(200)
+        .cookie(AUTH_TOKEN_NAME, `Bearer ${token}`)
+        .json(userRet);
 }
 
 export function update(req: Request, res: Response): void {

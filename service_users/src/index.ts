@@ -18,6 +18,11 @@ app.use(afterResponseLogger);
 app.use(authVerifier);
 
 // Routes
+app.get('/users/jwtprot', (req, res) => {
+    console.log(`[CARRY] ${req.carry}`);
+    res.status(200).send();
+});
+
 app.get('/users/health', health);
 
 app.get('/users', (req, res) => {

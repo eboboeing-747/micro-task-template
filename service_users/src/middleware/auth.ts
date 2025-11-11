@@ -13,26 +13,16 @@ function extractToken(tokenHeader: string): string | null {
 }
 
 export function authVerifier(req: Request, res: Response, next: NextFunction): void {
+    let userAuth: UserAuth | null = null;
     const tokenHeader: any = req.headers[AUTH_TOKEN_NAME];
 
-    if (!tokenHeader) {
-        res.status(400).json({
-            error: `no ${AUTH_TOKEN_NAME} in headers`
-        });
-        return;
+    if (tokenHeader) {
+        const token: string | null = extractToken(tokenHeader);
+
+        if (token)
+            userAuth = verifyToken(token)
     }
 
-    const token: string | null = extractToken(tokenHeader);
-
-    if (!token) {
-        res.status(400).json({
-            error: `failed to find ${AUTH_TOKEN_NAME}`
-        });
-        return;
-    }
-
-    const userAuth: UserAuth | null = verifyToken(token);
     req.carry = userAuth;
-    
     next();
 }
