@@ -1,8 +1,7 @@
 import { fakeUsersDb } from 'database.js';
 import { type UserRegister, type User, type UserReturn, type UserPayload, type UserAuth } from 'user.js';
 import type { Request, Response } from 'express';
-import { generateToken } from 'auth.js';
-import { AUTH_TOKEN_NAME } from 'auth.js';
+import { addAuthCookie } from 'auth.js';
 
 export function extractUserId(req: Request): number | null {
     const userId: number | typeof NaN = parseInt(req.params.userId!);
@@ -15,9 +14,15 @@ export function extractUserId(req: Request): number | null {
 
 export function health(req: Request, res: Response): void {
     res.status(200).json({
+        status: 'Users service is running',
         service: 'users',
         timestamp: new Date().toISOString()
     });
+}
+
+export function getAll(req: Request, res: Response): void {
+    const table: User[] = fakeUsersDb.getAll();
+    res.json(table);
 }
 
 export function register(req: Request, res: Response): void {
@@ -36,14 +41,8 @@ export function register(req: Request, res: Response): void {
             id: newUserId
         };
 
-        const token: string = generateToken(userAuth);
-
-        res
-            .status(201)
-            .cookie(AUTH_TOKEN_NAME, `Bearer ${token}`)
-            .json({
-                id: newUserId
-            });
+        addAuthCookie(res, userAuth);
+        res.status(201).json(userAuth);
     }
 }
 
@@ -73,15 +72,8 @@ export function logIn(req: Request, res: Response): void {
         idk: user.idk
     };
 
-    const userAuth: UserAuth = {
-        id: user.id
-    };
-
-    const token: string = generateToken(userAuth);
-    res
-        .status(200)
-        .cookie(AUTH_TOKEN_NAME, `Bearer ${token}`)
-        .json(userRet);
+    addAuthCookie(res, userRet);
+    res.status(200).json(userRet);
 }
 
 export function update(req: Request, res: Response): void {

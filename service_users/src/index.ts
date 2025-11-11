@@ -2,8 +2,7 @@ import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
 
-import { fakeUsersDb } from 'database.js';
-import { health, logIn, register, update, remove } from 'handler.js';
+import { health, logIn, register, update, remove, getAll } from 'handler.js';
 
 import { afterResponseLogger } from 'middleware/log.js';
 import { authVerifier } from 'middleware/auth.js';
@@ -20,26 +19,20 @@ app.use(authVerifier);
 // Routes
 app.get('/users/jwtprot', (req, res) => {
     console.log(`[CARRY] ${req.carry}`);
-    res.status(200).send();
+
+    if (req.carry === null)
+        res.status(401);
+    else
+        res.status(200);
+
+    res.send();
 });
 
 app.get('/users/health', health);
-
-app.get('/users', (req, res) => {
-    const users = Object.values(fakeUsersDb);
-    res.json(users);
-});
-
+app.get('/users', getAll);
 app.post('/users/create', register);
-
-app.get('/users/status', (req, res) => {
-    res.json({status: 'Users service is running'});
-});
-
 app.get('/users/login/:userId', logIn);
-
 app.put('/users/update/:userId', update);
-
 app.delete('/users/remove/:userId', remove);
 
 // Start server

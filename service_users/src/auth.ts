@@ -1,5 +1,6 @@
 import jwt, { type JwtPayload, type Secret, type VerifyErrors, type VerifyOptions } from 'jsonwebtoken';
-import { type User, type UserAuth } from 'user.js'
+import { type User, type UserAuth, type UserReturn, type UserRegister } from 'user.js'
+import { type Response } from 'express';
 
 export const AUTH_TOKEN_NAME: string = process.env.AUTH_TOKEN_NAME || 'auth-token';
 const SECRET_AUTH_KEY: Secret = process.env.SECRET_AUTH_KEY || 'lmao';
@@ -21,4 +22,13 @@ export function verifyToken(token: string): UserAuth | null {
     }
 
     return userAuth as UserAuth | null;
+}
+
+export function addAuthCookie(res: Response, user: User | UserReturn | UserAuth): void {
+    const userAuth: UserAuth = {
+        id: user.id
+    };
+
+    const token: string = generateToken(userAuth);
+    res.cookie(AUTH_TOKEN_NAME, `Bearer ${token}`);
 }
