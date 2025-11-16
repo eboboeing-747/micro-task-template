@@ -1,0 +1,19 @@
+{
+    "name": "database",
+    "version": "1.0.0",
+    "description": "fake generic database imitation",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "node ./dist/index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^5.9.3"
+    },
+    "dependencies": {
+        "tsc": "^2.0.4"
+    }
+}
