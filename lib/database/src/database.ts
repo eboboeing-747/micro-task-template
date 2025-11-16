@@ -10,8 +10,8 @@ export class Database<T extends Record> {
         return this.table;
     }
 
-    public add(record: T, isValid: (arg0: T, table: T[]) => boolean): number | null {
-        if (!isValid(record, this.table))
+    public add(record: T, isValidCallback: (arg0: T, table: T[]) => boolean): number | null {
+        if (!isValidCallback(record, this.table))
             return null;
 
         this.currentId++;
@@ -21,9 +21,9 @@ export class Database<T extends Record> {
         return record.id;
     }
 
-    public exists(callback: (record: T) => boolean): boolean {
+    public exists(existsCallback: (record: T) => boolean): boolean {
         return this.table.some(
-            (record: T): boolean => callback(record)
+            (record: T): boolean => existsCallback(record)
         );
     }
 
@@ -35,13 +35,13 @@ export class Database<T extends Record> {
         return record ?? null;
     }
 
-    public update(recordId: number, newRecord: T, update: (old: T, curr: T) => void): boolean {
+    public update(recordId: number, newRecord: T, updateCallback: (old: T, curr: T) => void): boolean {
         const record: T | null = this.get(recordId);
 
         if (record === null)
             return false;
 
-        update(record, newRecord);
+        updateCallback(record, newRecord);
 
         return true;
     }
@@ -56,4 +56,3 @@ export class Database<T extends Record> {
         return true;
     }
 }
-

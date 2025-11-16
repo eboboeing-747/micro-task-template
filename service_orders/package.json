@@ -10,6 +10,7 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "dependencies": {
+        "@local/database": "file:../lib/database",
         "@types/jsonwebtoken": "^9.0.10",
         "cors": "^2.8.5",
         "dotenv": "^17.2.3",

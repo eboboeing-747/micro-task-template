@@ -12,7 +12,7 @@ export function health(req: Request, res: Response): void {
 }
 
 export function getOrder(req: Request, res: Response): void {
-    const orderId = parseInt(req.params.orderId);
+    const orderId: number = parseInt(req.params.orderId!);
     const order = fakeOrdersDb[orderId];
 
     if (!order) {
@@ -27,8 +27,8 @@ export function getAll(req: Request, res: Response): void {
 
     // Добавляем фильтрацию по userId если передан параметр
     if (req.query.userId) {
-        const userId = parseInt(req.query.userId);
-        orders = orders.filter(order => order.userId === userId);
+        const userId: number = parseInt(req.query.userId as string);
+        orders = orders.filter((order: any) => order.userId === userId);
     }
 
     res.json(orders);
@@ -64,7 +64,7 @@ export function updateOrder(req: Request, res: Response): void {
 }
 
 export function deleteOrder(req: Request, res: Response): void {
-    const orderId = parseInt(req.params.orderId);
+    const orderId: number = parseInt(req.params.orderId!);
 
     if (!fakeOrdersDb[orderId]) {
         res.status(404).json({error: 'Order not found'});
