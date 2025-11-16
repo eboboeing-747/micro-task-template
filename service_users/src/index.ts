@@ -10,13 +10,11 @@ import { authVerifier } from 'middleware/auth.js';
 const app: Express = express();
 const PORT: number = Number(process.env.PORT) || 8000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(afterResponseLogger);
 app.use(authVerifier);
 
-// Routes
 app.get('/users/jwtprot', (req, res) => {
     console.log(`[CARRY] ${req.carry}`);
 
@@ -35,7 +33,6 @@ app.get('/users/login/:userId', logIn);
 app.put('/users/update/:userId', update);
 app.delete('/users/remove/:userId', remove);
 
-// Start server
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Users service running on port ${PORT}`);
 });

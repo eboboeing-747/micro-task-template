@@ -26,9 +26,6 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
 
-    // romove if production build fails, then replace all import .ts -> import .js
-    // "allowImportingTsExtensions": true,
-
     // Style Options
     // "noImplicitReturns": true,
     // "noImplicitOverride": true,
