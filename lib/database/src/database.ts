@@ -21,9 +21,9 @@ export class Database<T extends Record> {
         return record.id;
     }
 
-    public exists(existsCallback: (record: T) => boolean): boolean {
+    public exists(newRecord: T, existsCallback: (oldRecord: T, newRecord: T) => boolean): boolean {
         return this.table.some(
-            (record: T): boolean => existsCallback(record)
+            (oldRecord: T): boolean => existsCallback(oldRecord, newRecord)
         );
     }
 
@@ -35,7 +35,7 @@ export class Database<T extends Record> {
         return record ?? null;
     }
 
-    public update(recordId: number, newRecord: T, updateCallback: (old: T, curr: T) => void): boolean {
+    public update(recordId: number, newRecord: T, updateCallback: (oldRecord: T, newRecord: T) => void): boolean {
         const record: T | null = this.get(recordId);
 
         if (record === null)

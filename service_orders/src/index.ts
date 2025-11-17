@@ -2,7 +2,7 @@ import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
 
-import { health, getOrder, getAll, createOrder, updateOrder, deleteOrder } from 'handler.js';
+import { health, getOrder, get, createOrder, updateOrder, deleteOrder } from 'handler.js';
 
 const app: Express = express();
 const PORT: number = Number(process.env.PORT) || 8000;
@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.get('/orders/health', health);
 app.get('/orders/:orderId', getOrder);
-app.get('/orders', getAll);
+app.get('/orders', get);
 app.post('/orders', createOrder);
 app.put('/orders/:orderId', updateOrder);
 app.delete('/orders/:orderId', deleteOrder);
