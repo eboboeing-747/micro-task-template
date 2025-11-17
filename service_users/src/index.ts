@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
@@ -6,6 +7,8 @@ import { health, logIn, register, update, remove, getAll } from 'handler.js';
 
 import { afterResponseLogger } from 'middleware/log.js';
 import { authVerifier } from 'middleware/auth.js';
+
+dotenv.config({});
 
 const app: Express = express();
 const PORT: number = Number(process.env.PORT) || 8000;

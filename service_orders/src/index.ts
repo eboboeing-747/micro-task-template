@@ -1,8 +1,11 @@
 import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 
 import { health, getOrder, get, createOrder, updateOrder, deleteOrder } from 'handler.js';
+
+dotenv.config({});
 
 const app: Express = express();
 const PORT: number = Number(process.env.PORT) || 8000;

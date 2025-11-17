@@ -1,9 +1,14 @@
+import dotenv from 'dotenv';
 import jwt, { type JwtPayload, type Secret, type VerifyErrors, type VerifyOptions } from 'jsonwebtoken';
+
 import { type User, type UserAuth, type UserReturn, type UserRegister } from 'user.js'
 import { type Response } from 'express';
 
+dotenv.config({});
+
 export const AUTH_TOKEN_NAME: string = process.env.AUTH_TOKEN_NAME || 'auth-token';
-const SECRET_AUTH_KEY: Secret = process.env.SECRET_AUTH_KEY || 'lmao';
+const SECRET_AUTH_KEY: Secret = process.env.SECRET_AUTH_KEY || 'NOT_A_SECRET_KEY';
+
 const JWT_SIGN_OPTIONS: jwt.SignOptions = {
     algorithm: 'HS256'
 } as const;
