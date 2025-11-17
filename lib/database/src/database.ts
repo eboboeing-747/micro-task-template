@@ -10,15 +10,15 @@ export class Database<T extends Record> {
         return this.table;
     }
 
-    public add(record: T, isValidCallback: (arg0: T, table: T[]) => boolean): number | null {
-        if (!isValidCallback(record, this.table))
+    public add(newRecord: T, isValidCallback: (arg0: T, table: T[]) => boolean): number | null {
+        if (!isValidCallback(newRecord, this.table))
             return null;
 
         this.currentId++;
-        record.id = this.currentId;
-        this.table.push(record);
+        newRecord.id = this.currentId;
+        this.table.push(newRecord);
 
-        return record.id;
+        return newRecord.id;
     }
 
     public exists(newRecord: T, existsCallback: (oldRecord: T, newRecord: T) => boolean): boolean {

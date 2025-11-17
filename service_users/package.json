@@ -13,9 +13,9 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "@local/database": "file:../lib/database",
         "@types/jsonwebtoken": "^9.0.10",
         "cors": "^2.8.5",
-        "database": "file:../lib/database",
         "dotenv": "^17.2.3",
         "express": "^5.1.0",
         "jsonwebtoken": "^9.0.2"

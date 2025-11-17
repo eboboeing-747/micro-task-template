@@ -1,4 +1,4 @@
-import { fakeUsersDb } from 'database.js';
+import { fakeUsersDb, isValid, updateUser } from 'database.js';
 import { type UserRegister, type User, type UserReturn, type UserPayload, type UserAuth } from 'user.js';
 import type { Request, Response } from 'express';
 import { addAuthCookie } from 'auth.js';
@@ -32,7 +32,7 @@ export function register(req: Request, res: Response): void {
         ...userData
     };
 
-    const newUserId: number | null = fakeUsersDb.add(newUser);
+    const newUserId: number | null = fakeUsersDb.add(newUser, isValid);
 
     if (newUserId === null)
         res.status(409).send();
@@ -86,17 +86,18 @@ export function update(req: Request, res: Response): void {
         return;
     }
 
-    const userPl: UserPayload = req.body;
-    const success: boolean = fakeUsersDb.update(userId, userPl);
+    const userPayload: User = req.body;
+    const success: boolean = fakeUsersDb.update(userId, userPayload, updateUser);
 
     if (!success) {
         res.status(404).json({
             error: `failed to find user with userId: ${userId}`
         });
+
         return;
     }
 
-    res.status(200);
+    res.status(200).send();
 }
 
 export function remove(req: Request, res: Response): void {
