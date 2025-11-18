@@ -3,10 +3,10 @@ import express from 'express';
 import type { Express } from 'express';
 import cors from 'cors';
 
-import { health, logIn, register, update, remove, getAll } from 'handler.js';
+import { health, logIn, register, update, remove, getAll } from './handler.js';
 
-import { afterResponseLogger } from 'middleware/log.js';
-import { authVerifier } from 'middleware/auth.js';
+import { afterResponseLogger } from './middleware/log.js';
+import { authVerifier } from './middleware/auth.js';
 
 dotenv.config({});
 

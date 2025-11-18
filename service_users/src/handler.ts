@@ -1,7 +1,8 @@
-import { fakeUsersDb, isValid, updateUser } from 'database.js';
-import { type UserRegister, type User, type UserReturn, type UserPayload, type UserAuth } from 'user.js';
 import type { Request, Response } from 'express';
-import { addAuthCookie } from 'auth.js';
+
+import { fakeUsersDb, isValid, updateUser } from './database.js';
+import { type UserRegister, type User, type UserReturn, type UserAuth } from './user.js';
+import { addAuthCookie } from './auth.js';
 
 export function extractUserId(req: Request): number | null {
     const userId: number | typeof NaN = parseInt(req.params.userId!);

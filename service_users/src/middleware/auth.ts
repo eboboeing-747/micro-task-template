@@ -1,7 +1,7 @@
-import { generateToken, verifyToken } from 'auth.js';
 import type { Request, Response, NextFunction } from 'express';
-import type { UserAuth } from 'user.js';
-import { AUTH_TOKEN_NAME } from 'auth.js';
+
+import { verifyToken, AUTH_TOKEN_NAME } from '../auth.js';
+import type { UserAuth } from '../user.js';
 
 function extractToken(tokenHeader: string): string | null {
     const index: number = tokenHeader.indexOf(' ');
