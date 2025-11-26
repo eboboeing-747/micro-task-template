@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { exists, fakeOrdersDb, isValid, update } from "database.js";
-import type { Order } from "order.js";
+import { exists, fakeOrdersDb, isValid, update } from "./database.js";
+import type { Order } from "./order.js";
 
 export function health(req: Request, res: Response): void {
     res.json({

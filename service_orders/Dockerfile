@@ -1,12 +1,20 @@
 FROM node:18-alpine
 
+WORKDIR /lib/database
+
+COPY ../lib/database ./
+
+RUN npm install
+RUN npm run build
+
 WORKDIR /app
 
-COPY package*.json ./
+COPY service_orders/package*.json ./
+
 RUN npm install
 
-COPY . .
+COPY service_orders .
 
-EXPOSE 8000
+EXPOSE 8001
 
 CMD ["npm", "start"]

@@ -3,7 +3,7 @@ import type { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import { health, getOrder, get, createOrder, updateOrder, deleteOrder } from 'handler.js';
+import { health, getOrder, get, createOrder, updateOrder, deleteOrder } from './handler.js';
 
 dotenv.config({});
 
