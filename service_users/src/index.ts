@@ -31,10 +31,10 @@ app.get('/users/jwtprot', (req, res) => {
 
 app.get('/users/health', health);
 app.get('/users', getAll);
-app.post('/users/create', register);
-app.get('/users/login/:userId', logIn);
-app.put('/users/update/:userId', update);
-app.delete('/users/remove/:userId', remove);
+app.post('/users', register);
+app.get('/users/:userId', logIn);
+app.put('/users/:userId', update);
+app.delete('/users/:userId', remove);
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Users service running on port ${PORT}`);
