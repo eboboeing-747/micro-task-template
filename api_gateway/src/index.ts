@@ -1,18 +1,23 @@
-const express = require('express');
-const cors = require('cors');
-const axios = require('axios');
-const CircuitBreaker = require('opossum');
+import dotenv from 'dotenv';
+import express from 'express';
+import type { Express } from 'express';
+import cors from 'cors';
+import axios, { type AxiosResponse } from 'axios';
+import CircuitBreaker from 'opossum';
+import type { PrivateKey } from 'jsonwebtoken';
 
-const app = express();
-const PORT = process.env.PORT || 8000;
+dotenv.config({});
+
+const app: Express = express();
+const PORT: number = Number(process.env.PORT) || 8000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // Service URLs
-const USERS_SERVICE_URL = 'http://service_users:8000';
-const ORDERS_SERVICE_URL = 'http://service_orders:8000';
+const USERS_SERVICE_URL: string = 'http://service_users:8001';
+const ORDERS_SERVICE_URL: string = 'http://service_orders:8002';
 
 // Circuit Breaker configuration
 const circuitOptions = {
@@ -22,14 +27,15 @@ const circuitOptions = {
 };
 
 // Create circuit breakers for each service
-const usersCircuit = new CircuitBreaker(async (url, options = {}) => {
+const usersCircuit: CircuitBreaker = new CircuitBreaker(async (url, options = {}) => {
     try {
-        const response = await axios({
-            url, ...options,
+        const response: AxiosResponse = await axios({
+            url,
+            ...options as any,
             validateStatus: status => (status >= 200 && status < 300) || status === 404
         });
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
         if (error.response && error.response.status === 404) {
             return error.response.data;
         }
@@ -37,14 +43,15 @@ const usersCircuit = new CircuitBreaker(async (url, options = {}) => {
     }
 }, circuitOptions);
 
-const ordersCircuit = new CircuitBreaker(async (url, options = {}) => {
+const ordersCircuit: CircuitBreaker = new CircuitBreaker(async (url, options = {}) => {
     try {
-        const response = await axios({
-            url, ...options,
+        const response: AxiosResponse = await axios({
+            url,
+            ...options as any,
             validateStatus: status => (status >= 200 && status < 300) || status === 404
         });
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
         if (error.response && error.response.status === 404) {
             return error.response.data;
         }
@@ -59,9 +66,10 @@ ordersCircuit.fallback(() => ({error: 'Orders service temporarily unavailable'})
 // Routes with Circuit Breaker
 app.get('/users/:userId', async (req, res) => {
     try {
-        const user = await usersCircuit.fire(`${USERS_SERVICE_URL}/users/${req.params.userId}`);
-        if (user.error === 'User not found') {
-            res.status(404).json(user);
+        const user: any = await usersCircuit.fire(`${USERS_SERVICE_URL}/users/${req.params.userId}`);
+
+        if (user.status === 404) {
+            res.status(404).json(user.body.error);
         } else {
             res.json(user);
         }
@@ -114,11 +122,14 @@ app.put('/users/:userId', async (req, res) => {
     }
 });
 
+
+
 app.get('/orders/:orderId', async (req, res) => {
     try {
-        const order = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`);
-        if (order.error === 'Order not found') {
-            res.status(404).json(order);
+        const order: any = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`);
+
+        if (order.status === 404) {
+            res.status(404).json(order.body.error);
         } else {
             res.json(order);
         }
@@ -195,11 +206,14 @@ app.get('/users/:userId/details', async (req, res) => {
         const userId = req.params.userId;
 
         // Get user details
-        const userPromise = usersCircuit.fire(`${USERS_SERVICE_URL}/users/${userId}`);
+        const userPromise: Promise<any> = usersCircuit.fire(`${USERS_SERVICE_URL}/users/${userId}`);
 
         // Get user's orders (assuming orders have a userId field)
-        const ordersPromise = ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders`)
-            .then(orders => orders.filter(order => order.userId == userId));
+        const ordersPromise: Promise<any> = ordersCircuit
+            .fire(`${ORDERS_SERVICE_URL}/orders`)
+            .then((orders: any) =>
+                  orders.filter((order: any) => order.userId == userId)
+            );
 
         // Wait for both requests to complete
         const [user, userOrders] = await Promise.all([userPromise, ordersPromise]);
