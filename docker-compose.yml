@@ -9,14 +9,18 @@ services:
       - app-network
 
   service_users:
-    build: service_users
+    build:
+      dockerfile: service_users.Dockerfile
+      context: .
     environment:
       - NODE_ENV=production
     networks:
       - app-network
 
   service_orders:
-    build: service_orders
+    build:
+      dockerfile: service_orders.Dockerfile
+      context: .
     environment:
       - NODE_ENV=production
     networks:
