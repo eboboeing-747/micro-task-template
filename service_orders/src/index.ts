@@ -14,11 +14,11 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/orders/health', health);
-app.get('/orders/:orderId', getOrder);
+app.get('/orders/:userId/:orderId', getOrder);
 app.get('/orders', get);
 app.post('/orders', createOrder);
-app.put('/orders/:orderId', updateOrder);
-app.delete('/orders/:orderId', deleteOrder);
+app.put('/orders/:userId/:orderId', updateOrder);
+app.delete('/orders/:userId/:orderId', deleteOrder);
 
 app.listen(PORT, () => {
     console.log(`Orders service running on port ${PORT}`);

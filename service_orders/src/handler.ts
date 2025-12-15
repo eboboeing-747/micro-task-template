@@ -20,6 +20,13 @@ export function getOrder(req: Request, res: Response): void {
         return;
     }
 
+    const userId: number = parseInt(req.params.userId as string);
+
+    if (order.userId !== userId) {
+        res.status(403).send();
+        return;
+    }
+
     res.json(order);
 }
 
@@ -43,38 +50,49 @@ export function createOrder(req: Request, res: Response): void {
         ...orderData
     };
 
-    fakeOrdersDb.add(newOrder, isValid);
-    res.status(201).json(newOrder);
+    const newOrderId: number | null = fakeOrdersDb.add(newOrder, isValid);
+    res.status(201).json(newOrderId);
 }
 
 export function updateOrder(req: Request, res: Response): void {
     const orderId: number = parseInt(req.params.orderId as string);
     const orderData = req.body;
-
     const newOrder: Order = {
         id: orderId,
         ...orderData
     };
+    const currentOrder: Order | null = fakeOrdersDb.get(orderId);
 
-    if (!fakeOrdersDb.exists(newOrder, exists)) {
+    if (!currentOrder) {
         res.status(404).json({error: 'Order not found'} as Error);
+        return;
+    }
+
+    const userId: number = parseInt(req.params.userId as string);
+
+    if (currentOrder.userId !== userId) {
+        res.status(403).send();
+        return;
     }
 
     fakeOrdersDb.update(orderId, newOrder, update);
-
     res.json(fakeOrdersDb.get(orderId));
 }
 
 export function deleteOrder(req: Request, res: Response): void {
-    const orderId: number = parseInt(req.params.orderId!);
+    const orderId: number = parseInt(req.params.orderId as string);
+    const currentOrder: Order | null = fakeOrdersDb.get(orderId);
 
-    const newOrder: Order = {
-        id: orderId,
-        userId: 0
-    };
-
-    if (!fakeOrdersDb.exists(newOrder, exists)) {
+    if (!currentOrder) {
         res.status(404).json({error: 'Order not found'} as Error);
+        return;
+    }
+
+    const userId: number = parseInt(req.params.userId as string);
+
+    if (currentOrder.userId !== userId) {
+        res.status(403).send();
+        return;
     }
 
     const deletedOrder = fakeOrdersDb.get(orderId);

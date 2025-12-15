@@ -4,14 +4,21 @@ import type { Express } from 'express';
 import cors from 'cors';
 import axios, { type AxiosResponse } from 'axios';
 import CircuitBreaker from 'opossum';
-import type { User, UserReturn } from '@local/types';
+import type { UserAuth, User, UserReturn } from '@local/types';
+import type { Order } from '@local/types';
+import type { Error } from '@local/types';
 
 dotenv.config({});
 
-interface InnerResponse {
-    body: any,
+interface UserResponse {
+    body: UserAuth | User | User[] | UserReturn | Error,
     status: number
-};
+}
+
+interface OrderResponse {
+    body: Order[] | Order | Error,
+    status: number
+}
 
 const app: Express = express();
 const PORT: number = Number(process.env.PORT) || 8000;
@@ -43,7 +50,7 @@ const usersCircuit: CircuitBreaker = new CircuitBreaker(async (url, options = {}
         return {
             body: response.data,
             status: response.status
-        } as InnerResponse;
+        } as UserResponse;
     } catch (error: any) {
         if (error.response && error.response.status === 404) {
             return error.response.data;
@@ -64,7 +71,7 @@ const ordersCircuit: CircuitBreaker = new CircuitBreaker(async (url, options = {
         return {
             body: response.data,
             status: response.status
-        } as InnerResponse;
+        } as OrderResponse;
     } catch (error: any) {
         if (error.response && error.response.status === 404) {
             return error.response.data;
@@ -82,9 +89,9 @@ ordersCircuit.fallback(() => ({error: 'Orders service temporarily unavailable'})
 // Routes with Circuit Breaker
 app.get('/users/:userId', async (req, res) => {
     try {
-        const serviceRes: InnerResponse = await usersCircuit.fire(
+        const serviceRes: UserResponse = await usersCircuit.fire(
             `${USERS_SERVICE_URL}/users/${req.params.userId}`
-        ) as InnerResponse;
+        ) as UserResponse;
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
@@ -93,10 +100,10 @@ app.get('/users/:userId', async (req, res) => {
 
 app.post('/users', async (req, res) => {
     try {
-        const serviceRes: InnerResponse = await usersCircuit.fire(`${USERS_SERVICE_URL}/users`, {
+        const serviceRes: UserResponse = await usersCircuit.fire(`${USERS_SERVICE_URL}/users`, {
             method: 'POST',
             data: req.body
-        }) as InnerResponse;
+        }) as UserResponse;
 
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
@@ -106,9 +113,9 @@ app.post('/users', async (req, res) => {
 
 app.get('/users', async (req, res) => {
     try {
-        const serviceRes: InnerResponse = await usersCircuit.fire(
+        const serviceRes: UserResponse = await usersCircuit.fire(
             `${USERS_SERVICE_URL}/users`
-        ) as InnerResponse;
+        ) as UserResponse;
         res.json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
@@ -148,9 +155,9 @@ app.put('/users/:userId', async (req, res) => {
 
 app.get('/orders/:orderId', async (req, res) => {
     try {
-        const serviceRes: InnerResponse = await ordersCircuit.fire(
+        const serviceRes: UserResponse = await ordersCircuit.fire(
             `${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`
-        ) as InnerResponse;
+        ) as UserResponse;
 
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
@@ -160,10 +167,10 @@ app.get('/orders/:orderId', async (req, res) => {
 
 app.post('/orders', async (req, res) => {
     try {
-        const serviceRes: InnerResponse = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders`, {
+        const serviceRes: UserResponse = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders`, {
             method: 'POST',
             data: req.body
-        }) as InnerResponse;
+        }) as UserResponse;
 
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
@@ -229,12 +236,12 @@ app.get('/users/:userId/details', async (req, res) => {
         const userId = req.params.userId;
 
         // Get user details
-        const userPromise: Promise<InnerResponse> = usersCircuit.fire(
+        const userPromise: Promise<UserResponse> = usersCircuit.fire(
             `${USERS_SERVICE_URL}/users/${userId}`
-        ) as Promise<InnerResponse>;
+        ) as Promise<UserResponse>;
 
         // Get user's orders (assuming orders have a userId field)
-        const ordersPromise: Promise<InnerResponse> = ordersCircuit
+        const ordersPromise: Promise<OrderResponse> = ordersCircuit
             .fire(`${ORDERS_SERVICE_URL}/orders`)
             .then((orders: any) =>
                   orders.filter((order: any) => order.userId == userId)
