@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import { exists, fakeOrdersDb, isValid, update } from "database.js";
-import type { Order } from "order.js";
+import { exists, fakeOrdersDb, isValid, update } from "./database.js";
+import type { Order, OrderCreate } from "@local/types";
+import type { Error } from "@local/types";
 
 export function health(req: Request, res: Response): void {
     res.json({
@@ -15,15 +16,22 @@ export function getOrder(req: Request, res: Response): void {
     const order: Order | null = fakeOrdersDb.get(orderId);
 
     if (!order) {
-        res.status(404).json({error: 'Order not found'});
+        res.status(404).json({error: 'Order not found'} as Error);
+        return;
+    }
+
+    const userId: number = parseInt(req.params.userId as string);
+
+    if (order.userId !== userId) {
+        res.status(403).send();
         return;
     }
 
     res.json(order);
 }
 
-export function get(req: Request, res: Response): void {
-    let orders = fakeOrdersDb.getAll();
+export function getAllOfUser(req: Request, res: Response): void {
+    let orders: Order[] = fakeOrdersDb.getAll();
 
     // Добавляем фильтрацию по userId если передан параметр
     if (req.query.userId) {
@@ -31,49 +39,60 @@ export function get(req: Request, res: Response): void {
         orders = orders.filter((order: Order) => order.userId === userId);
     }
 
-    res.json(orders);
+    res.status(200).json(orders);
 }
 
 export function createOrder(req: Request, res: Response): void {
-    const orderData = req.body;
-
-    const newOrder = {
+    const orderData: OrderCreate = req.body;
+    const newOrder: Order = {
         id: 0,
-        ...orderData
+        userId: orderData.userId,
+        entries: orderData.entries
     };
 
-    fakeOrdersDb.add(newOrder, isValid);
-    res.status(201).json(newOrder);
+    const newOrderId: number | null = fakeOrdersDb.add(newOrder, isValid);
+    res.status(201).json(newOrderId);
 }
 
 export function updateOrder(req: Request, res: Response): void {
     const orderId: number = parseInt(req.params.orderId as string);
     const orderData = req.body;
-
     const newOrder: Order = {
         id: orderId,
         ...orderData
     };
+    const currentOrder: Order | null = fakeOrdersDb.get(orderId);
 
-    if (!fakeOrdersDb.exists(newOrder, exists)) {
-        res.status(404).json({error: 'Order not found'});
+    if (!currentOrder) {
+        res.status(404).json({error: 'Order not found'} as Error);
+        return;
+    }
+
+    const userId: number = parseInt(req.params.userId as string);
+
+    if (currentOrder.userId !== userId) {
+        res.status(403).send();
+        return;
     }
 
     fakeOrdersDb.update(orderId, newOrder, update);
-
     res.json(fakeOrdersDb.get(orderId));
 }
 
 export function deleteOrder(req: Request, res: Response): void {
-    const orderId: number = parseInt(req.params.orderId!);
+    const orderId: number = parseInt(req.params.orderId as string);
+    const currentOrder: Order | null = fakeOrdersDb.get(orderId);
 
-    const newOrder: Order = {
-        id: orderId,
-        userId: 0
-    };
+    if (!currentOrder) {
+        res.status(404).json({error: 'Order not found'} as Error);
+        return;
+    }
 
-    if (!fakeOrdersDb.exists(newOrder, exists)) {
-        res.status(404).json({error: 'Order not found'});
+    const userId: number = parseInt(req.params.userId as string);
+
+    if (currentOrder.userId !== userId) {
+        res.status(403).send();
+        return;
     }
 
     const deletedOrder = fakeOrdersDb.get(orderId);

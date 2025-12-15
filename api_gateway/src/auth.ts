@@ -2,7 +2,7 @@ import { type Response } from 'express';
 import dotenv from 'dotenv';
 import jwt, { type JwtPayload, type Secret,  } from 'jsonwebtoken';
 
-import { type User, type UserAuth, type UserReturn, } from './user.js'
+import { type User, type UserAuth, type UserReturn, } from '@local/types';
 
 dotenv.config({});
 
@@ -29,7 +29,7 @@ export function verifyToken(token: string): UserAuth | null {
     return userAuth as UserAuth | null;
 }
 
-export function addAuthCookie(res: Response, user: User | UserReturn | UserAuth): void {
+export function addAuthCookie(res: Response, user: UserAuth): void {
     const userAuth: UserAuth = {
         id: user.id
     };

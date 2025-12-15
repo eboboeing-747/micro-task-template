@@ -1,5 +1,5 @@
 import { Database } from "@local/database";
-import type { User } from "user.js";
+import type { User } from "@local/types";
 
 export function isValid(newUser: User, table: User[]): boolean {
     return !table.some(user => user.login === newUser.login);
