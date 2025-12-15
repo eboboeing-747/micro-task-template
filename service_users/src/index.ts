@@ -16,17 +16,6 @@ app.use(cors());
 app.use(express.json());
 app.use(afterResponseLogger);
 
-app.get('/users/jwtprot', (req, res) => {
-    console.log(`[CARRY] ${req.carry}`);
-
-    if (req.carry === null)
-        res.status(401);
-    else
-        res.status(200);
-
-    res.send();
-});
-
 app.get('/users/health', health);
 app.get('/users', getAll);
 app.post('/users', register);

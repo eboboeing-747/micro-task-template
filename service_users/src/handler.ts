@@ -3,7 +3,6 @@ import type { Request, Response } from 'express';
 import { fakeUsersDb, isValid, updateUser } from './database.js';
 import type { UserRegister, User, UserReturn, UserAuth } from '@local/types';
 import type { Error } from '@local/types';
-import { addAuthCookie } from './auth.js';
 
 export function extractUserId(req: Request): number | null {
     const userId: number | typeof NaN = parseInt(req.params.userId!);
@@ -43,7 +42,6 @@ export function register(req: Request, res: Response): void {
             id: newUserId
         };
 
-        addAuthCookie(res, userAuth);
         res.status(201).json(userAuth);
     }
 }
@@ -76,7 +74,6 @@ export function logIn(req: Request, res: Response): void {
         idk: user.idk
     };
 
-    addAuthCookie(res, userRet);
     res.status(200).json(userRet);
 }
 

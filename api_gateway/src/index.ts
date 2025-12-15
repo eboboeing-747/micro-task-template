@@ -5,8 +5,8 @@ import cors from 'cors';
 import axios, { type AxiosResponse } from 'axios';
 import CircuitBreaker from 'opossum';
 
-import { authVerifier } from 'middleware/auth.js';
-import { addAuthCookie } from 'auth.js';
+import { authVerifier } from './middleware/auth.js';
+import { addAuthCookie } from './auth.js';
 
 import type { UserAuth, User, UserReturn } from '@local/types';
 import type { Order } from '@local/types';
