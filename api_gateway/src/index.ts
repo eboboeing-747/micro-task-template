@@ -1,9 +1,13 @@
 import dotenv from 'dotenv';
 import express from 'express';
-import type { Express } from 'express';
+import type { Express, Request, Response } from 'express';
 import cors from 'cors';
 import axios, { type AxiosResponse } from 'axios';
 import CircuitBreaker from 'opossum';
+
+import { authVerifier } from 'middleware/auth.js';
+import { addAuthCookie } from 'auth.js';
+
 import type { UserAuth, User, UserReturn } from '@local/types';
 import type { Order } from '@local/types';
 import type { Error } from '@local/types';
@@ -26,6 +30,7 @@ const PORT: number = Number(process.env.PORT) || 8000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(authVerifier);
 
 // Service URLs
 const USERS_SERVICE_URL: string = process.env.USERS_SERVICE_URL || 'http://service_users:8001';
@@ -44,7 +49,7 @@ const usersCircuit: CircuitBreaker = new CircuitBreaker(async (url, options = {}
         const response: AxiosResponse = await axios({
             url,
             ...options as any,
-            validateStatus: status => (status >= 200 && status < 300) || status === 404
+            validateStatus: status => (status >= 200 && status < 300) || (status >= 400 && status < 500)
         });
 
         return {
@@ -86,18 +91,28 @@ ordersCircuit.fallback(() => ({error: 'Orders service temporarily unavailable'})
 
 
 
-// Routes with Circuit Breaker
-app.get('/users/:userId', async (req, res) => {
+// log in
+// TODO: revert to /users/:userId
+app.get('/users/login/:userId', async (req, res) => {
     try {
+        const userAuth: UserAuth = {
+            id: parseInt(req.params.userId as string)
+        } as const;
+
         const serviceRes: UserResponse = await usersCircuit.fire(
-            `${USERS_SERVICE_URL}/users/${req.params.userId}`
+            `${USERS_SERVICE_URL}/users/${userAuth.id}`
         ) as UserResponse;
+
+        if (serviceRes.status === 200)
+            addAuthCookie(res, userAuth);
+
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
     }
 });
 
+// register
 app.post('/users', async (req, res) => {
     try {
         const serviceRes: UserResponse = await usersCircuit.fire(`${USERS_SERVICE_URL}/users`, {
@@ -105,58 +120,50 @@ app.post('/users', async (req, res) => {
             data: req.body
         }) as UserResponse;
 
+        switch (serviceRes.status) {
+            case 201:
+                addAuthCookie(res, serviceRes.body as UserAuth);
+                break;
+            case 409:
+                res.status(serviceRes.status).json({
+                    error: `login '${req.body.login}' is taken`
+                } as Error);
+                return;
+        }
+
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
     }
 });
 
+// get all
 app.get('/users', async (req, res) => {
     try {
         const serviceRes: UserResponse = await usersCircuit.fire(
             `${USERS_SERVICE_URL}/users`
         ) as UserResponse;
+
         res.json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
     }
 });
 
-app.delete('/users/:userId', async (req, res) => {
+// delete
+// was '/users/:userId'
+app.delete('/users', async (req, res) => {
     try {
-        const serviceRes = await usersCircuit.fire(
-            `${USERS_SERVICE_URL}/users/${req.params.userId}`,
+        const userAuth: UserAuth | null = req.carry;
+
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        const serviceRes: UserResponse = await usersCircuit.fire(
+            `${USERS_SERVICE_URL}/users/${userAuth.id}`,
             { method: 'DELETE' }
-        );
-
-        res.json(serviceRes);
-    } catch (error) {
-        res.status(500).json({error: 'Internal server error'});
-    }
-});
-
-app.put('/users/:userId', async (req, res) => {
-    try {
-        const serviceRes = await usersCircuit.fire(
-            `${USERS_SERVICE_URL}/users/${req.params.userId}`,
-            {
-                method: 'PUT',
-                data: req.body
-            }
-        );
-
-        res.json(serviceRes);
-    } catch (error) {
-        res.status(500).json({error: 'Internal server error'});
-    }
-});
-
-
-
-app.get('/orders/:orderId', async (req, res) => {
-    try {
-        const serviceRes: UserResponse = await ordersCircuit.fire(
-            `${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`
         ) as UserResponse;
 
         res.status(serviceRes.status).json(serviceRes.body);
@@ -165,12 +172,24 @@ app.get('/orders/:orderId', async (req, res) => {
     }
 });
 
-app.post('/orders', async (req, res) => {
+// update
+// was '/users/:userId'
+app.put('/users', async (req, res) => {
     try {
-        const serviceRes: UserResponse = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders`, {
-            method: 'POST',
-            data: req.body
-        }) as UserResponse;
+        const userAuth: UserAuth | null = req.carry;
+
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        const serviceRes: UserResponse = await usersCircuit.fire(
+            `${USERS_SERVICE_URL}/users/${userAuth.id}`,
+            {
+                method: 'PUT',
+                data: req.body
+            }
+        ) as UserResponse;
 
         res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
@@ -178,6 +197,52 @@ app.post('/orders', async (req, res) => {
     }
 });
 
+
+
+// get order by id
+app.get('/orders/:orderId', async (req: Request, res: Response) => {
+    try {
+        const userAuth: UserAuth | null = req.carry;
+
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        const serviceRes: UserResponse = await ordersCircuit.fire(
+            `${ORDERS_SERVICE_URL}/orders/${userAuth.id}/${req.params.orderId}`
+        ) as UserResponse;
+
+        res.status(serviceRes.status).json(serviceRes.body);
+    } catch (error) {
+        res.status(500).json({error: 'Internal server error'});
+    }
+});
+
+// create order for user with userId
+// req.body is OrderPayload
+app.post('/orders', async (req, res) => {
+    try {
+        const userAuth: UserAuth | null = req.carry;
+
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        req.body.userId = userAuth.id;
+        const serviceRes: OrderResponse = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders`, {
+            method: 'POST',
+            data: req.body
+        }) as OrderResponse;
+
+        res.status(serviceRes.status).json(serviceRes.body);
+    } catch (error) {
+        res.status(500).json({error: 'Internal server error'});
+    }
+});
+
+// get all
 app.get('/orders', async (req, res) => {
     try {
         const serviceRes = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders`);
@@ -189,10 +254,19 @@ app.get('/orders', async (req, res) => {
 
 app.delete('/orders/:orderId', async (req, res) => {
     try {
-        const result = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`, {
-            method: 'DELETE'
-        });
-        res.json(result);
+        const userAuth: UserAuth | null = req.carry;
+
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        const serviceRes: OrderResponse = await ordersCircuit.fire(
+            `${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`,
+            { method: 'DELETE' }
+        ) as OrderResponse;
+
+        res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
     }
@@ -200,11 +274,22 @@ app.delete('/orders/:orderId', async (req, res) => {
 
 app.put('/orders/:orderId', async (req, res) => {
     try {
-        const order = await ordersCircuit.fire(`${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`, {
-            method: 'PUT',
-            data: req.body
-        });
-        res.json(order);
+        const userAuth: UserAuth | null = req.carry;
+
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        const serviceRes: OrderResponse = await ordersCircuit.fire(
+            `${ORDERS_SERVICE_URL}/orders/${req.params.orderId}`,
+            {
+                method: 'PUT',
+                data: req.body
+            }
+        ) as OrderResponse;
+
+        res.status(serviceRes.status).json(serviceRes.body);
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});
     }
@@ -231,34 +316,34 @@ app.get('/orders/health', async (req, res) => {
 
 
 // Gateway Aggregation: Get user details with their orders
-app.get('/users/:userId/details', async (req, res) => {
+app.get('/users/details', async (req, res) => {
     try {
-        const userId = req.params.userId;
+        const userAuth: UserAuth | null = req.carry;
 
-        // Get user details
+        if (userAuth === null) {
+            res.status(403).json({ error: 'no auth token' } as Error);
+            return;
+        }
+
+        // get user
         const userPromise: Promise<UserResponse> = usersCircuit.fire(
-            `${USERS_SERVICE_URL}/users/${userId}`
+            `${USERS_SERVICE_URL}/users/${userAuth.id}`
         ) as Promise<UserResponse>;
 
-        // Get user's orders (assuming orders have a userId field)
-        const ordersPromise: Promise<OrderResponse> = ordersCircuit
-            .fire(`${ORDERS_SERVICE_URL}/orders`)
-            .then((orders: any) =>
-                  orders.filter((order: any) => order.userId == userId)
-            );
+        // get user's orders (assuming orders have a userId field)
+        const ordersPromise: Promise<OrderResponse> = ordersCircuit.fire(
+            `${ORDERS_SERVICE_URL}/orders?userId=${userAuth.id}`
+        ) as Promise<OrderResponse>;
 
-        // Wait for both requests to complete
-        const [user, userOrders] = await Promise.all([userPromise, ordersPromise]);
+        const [user, userOrders]: [UserResponse, OrderResponse] = await Promise.all([userPromise, ordersPromise]);
 
-        // If user not found, return 404
-        if (user.status === 404) {
-            return res.status(404).json(user);
-        }
+        if (user.status === 404)
+            return res.status(user.status).json(user.body);
 
         // Return aggregated response
         res.json({
-            user,
-            orders: userOrders
+            user: user.body,
+            orders: userOrders.body
         });
     } catch (error) {
         res.status(500).json({error: 'Internal server error'});

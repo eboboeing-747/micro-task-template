@@ -6,7 +6,6 @@ import cors from 'cors';
 import { health, logIn, register, update, remove, getAll } from './handler.js';
 
 import { afterResponseLogger } from './middleware/log.js';
-import { authVerifier } from './middleware/auth.js';
 
 dotenv.config({});
 
@@ -16,7 +15,6 @@ const PORT: number = Number(process.env.PORT) || 8000;
 app.use(cors());
 app.use(express.json());
 app.use(afterResponseLogger);
-app.use(authVerifier);
 
 app.get('/users/jwtprot', (req, res) => {
     console.log(`[CARRY] ${req.carry}`);

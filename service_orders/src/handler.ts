@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { exists, fakeOrdersDb, isValid, update } from "./database.js";
-import type { Order } from "@local/types";
+import type { Order, OrderCreate } from "@local/types";
 import type { Error } from "@local/types";
 
 export function health(req: Request, res: Response): void {
@@ -30,7 +30,7 @@ export function getOrder(req: Request, res: Response): void {
     res.json(order);
 }
 
-export function get(req: Request, res: Response): void {
+export function getAllOfUser(req: Request, res: Response): void {
     let orders: Order[] = fakeOrdersDb.getAll();
 
     // Добавляем фильтрацию по userId если передан параметр
@@ -43,11 +43,11 @@ export function get(req: Request, res: Response): void {
 }
 
 export function createOrder(req: Request, res: Response): void {
-    const orderData = req.body;
-
-    const newOrder = {
+    const orderData: OrderCreate = req.body;
+    const newOrder: Order = {
         id: 0,
-        ...orderData
+        userId: orderData.userId,
+        entries: orderData.entries
     };
 
     const newOrderId: number | null = fakeOrdersDb.add(newOrder, isValid);

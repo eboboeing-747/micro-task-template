@@ -1,32 +1,31 @@
 {
-  // Visit https://aka.ms/tsconfig to read more about this file
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "typeRoots": ["./types"],
+    // Visit https://aka.ms/tsconfig to read more about this file
+    // "files": ["types/express/index.d.ts"],
+    "compilerOptions": {
+        "rootDir": "./src",
+        "outDir": "./dist",
+        "typeRoots": [
+            "@types",
+            "node_modules/@types"
+        ],
+        "module": "nodenext",
+        "target": "esnext",
+        "types": [],
+        "baseUrl": "./src",
 
-    // "paths": {
-    //     "@src/*": ["./src/*"]
-    // },
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
 
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
-    "baseUrl": "./src",
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
 
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-
-    "strict": true,
-    "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
-    "isolatedModules": true,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
-    "skipLibCheck": true
-  }
+        "strict": true,
+        "jsx": "react-jsx",
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "noUncheckedSideEffectImports": true,
+        "moduleDetection": "force",
+        "skipLibCheck": true
+    }
 }

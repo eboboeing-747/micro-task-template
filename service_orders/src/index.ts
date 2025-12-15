@@ -3,7 +3,7 @@ import type { Express } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-import { health, getOrder, get, createOrder, updateOrder, deleteOrder } from './handler.js';
+import { health, getOrder, getAllOfUser, createOrder, updateOrder, deleteOrder } from './handler.js';
 
 dotenv.config({});
 
@@ -15,7 +15,7 @@ app.use(express.json());
 
 app.get('/orders/health', health);
 app.get('/orders/:userId/:orderId', getOrder);
-app.get('/orders', get);
+app.get('/orders', getAllOfUser);
 app.post('/orders', createOrder);
 app.put('/orders/:userId/:orderId', updateOrder);
 app.delete('/orders/:userId/:orderId', deleteOrder);
