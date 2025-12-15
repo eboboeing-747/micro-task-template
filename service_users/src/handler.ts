@@ -1,7 +1,8 @@
 import type { Request, Response } from 'express';
 
 import { fakeUsersDb, isValid, updateUser } from './database.js';
-import { type UserRegister, type User, type UserReturn, type UserAuth } from './user.js';
+import type { UserRegister, User, UserReturn, UserAuth } from '@local/types';
+import type { Error } from '@local/types';
 import { addAuthCookie } from './auth.js';
 
 export function extractUserId(req: Request): number | null {
@@ -53,7 +54,8 @@ export function logIn(req: Request, res: Response): void {
     if (userId === null) {
         res.status(400).json({
             error: 'failed to parse userId into int'
-        });
+        } as Error);
+
         return;
     }
 
@@ -62,7 +64,8 @@ export function logIn(req: Request, res: Response): void {
     if (user === null) {
         res.status(404).json({
             error: `failed to find user with userId: ${userId}`
-        });
+        } as Error);
+
         return;
     }
 
@@ -83,7 +86,8 @@ export function update(req: Request, res: Response): void {
     if (userId === null) {
         res.status(400).json({
             error: 'failed to parse userId into int'
-        });
+        } as Error);
+
         return;
     }
 
@@ -93,7 +97,7 @@ export function update(req: Request, res: Response): void {
     if (!success) {
         res.status(404).json({
             error: `failed to find user with userId: ${userId}`
-        });
+        } as Error);
 
         return;
     }
@@ -107,7 +111,8 @@ export function remove(req: Request, res: Response): void {
     if (userId === null) {
         res.status(400).json({
             error: 'failed to parse userId into int'
-        });
+        } as Error);
+
         return;
     }
 

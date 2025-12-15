@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import { exists, fakeOrdersDb, isValid, update } from "database.js";
-import type { Order } from "order.js";
+import { exists, fakeOrdersDb, isValid, update } from "./database.js";
+import type { Order } from "@local/types";
+import type { Error } from "@local/types";
 
 export function health(req: Request, res: Response): void {
     res.json({
@@ -15,7 +16,7 @@ export function getOrder(req: Request, res: Response): void {
     const order: Order | null = fakeOrdersDb.get(orderId);
 
     if (!order) {
-        res.status(404).json({error: 'Order not found'});
+        res.status(404).json({error: 'Order not found'} as Error);
         return;
     }
 
@@ -23,7 +24,7 @@ export function getOrder(req: Request, res: Response): void {
 }
 
 export function get(req: Request, res: Response): void {
-    let orders = fakeOrdersDb.getAll();
+    let orders: Order[] = fakeOrdersDb.getAll();
 
     // Добавляем фильтрацию по userId если передан параметр
     if (req.query.userId) {
@@ -31,7 +32,7 @@ export function get(req: Request, res: Response): void {
         orders = orders.filter((order: Order) => order.userId === userId);
     }
 
-    res.json(orders);
+    res.status(200).json(orders);
 }
 
 export function createOrder(req: Request, res: Response): void {
@@ -56,7 +57,7 @@ export function updateOrder(req: Request, res: Response): void {
     };
 
     if (!fakeOrdersDb.exists(newOrder, exists)) {
-        res.status(404).json({error: 'Order not found'});
+        res.status(404).json({error: 'Order not found'} as Error);
     }
 
     fakeOrdersDb.update(orderId, newOrder, update);
@@ -73,7 +74,7 @@ export function deleteOrder(req: Request, res: Response): void {
     };
 
     if (!fakeOrdersDb.exists(newOrder, exists)) {
-        res.status(404).json({error: 'Order not found'});
+        res.status(404).json({error: 'Order not found'} as Error);
     }
 
     const deletedOrder = fakeOrdersDb.get(orderId);

@@ -2,7 +2,7 @@ import { type Response } from 'express';
 import dotenv from 'dotenv';
 import jwt, { type JwtPayload, type Secret,  } from 'jsonwebtoken';
 
-import { type User, type UserAuth, type UserReturn, } from './user.js'
+import { type User, type UserAuth, type UserReturn, } from '@local/types';
 
 dotenv.config({});
 

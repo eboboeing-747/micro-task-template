@@ -1,5 +1,5 @@
 import { Database } from "@local/database";
-import type { Order } from "order.js";
+import type { Order } from "@local/types";
 
 export function isValid(order: Order): boolean {
     return true;
