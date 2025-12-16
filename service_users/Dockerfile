@@ -9,12 +9,14 @@ RUN npm run build
 
 WORKDIR /app
 
-COPY service_orders/package*.json ./
+COPY service_users/package*.json ./
 
 RUN npm install
 
-COPY service_orders .
+COPY service_users .
 
-EXPOSE 8001
+RUN npm run build
+
+EXPOSE 8000
 
 CMD ["npm", "start"]
