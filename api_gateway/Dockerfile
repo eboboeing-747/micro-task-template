@@ -1,11 +1,17 @@
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /lib/types
+COPY ../lib/types ./
 
-COPY package*.json ./
+RUN npm install
+RUN npm run build
+
+WORKDIR /app
+COPY api_gateway/package*.json ./
 RUN npm install
 
-COPY . .
+COPY api_gateway .
+RUN npm run build
 
 EXPOSE 8000
 

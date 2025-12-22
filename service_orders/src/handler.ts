@@ -52,7 +52,9 @@ export function createOrder(req: Request, res: Response): void {
     };
 
     const newOrderId: number | null = fakeOrdersDb.add(newOrder, isValid);
-    res.status(201).json(newOrderId);
+    res.status(201).json({
+        id: newOrderId
+    });
 }
 
 export function updateOrder(req: Request, res: Response): void {
