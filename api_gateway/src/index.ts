@@ -7,6 +7,7 @@ import CircuitBreaker from 'opossum';
 
 import { authVerifier } from './middleware/auth.js';
 import { addAuthCookie } from './auth.js';
+import { USERS_SERVICE_URL, ORDERS_SERVICE_URL } from './env.js';
 
 import type { UserAuth, User, UserReturn } from '@local/types';
 import type { Order } from '@local/types';
@@ -31,10 +32,6 @@ const PORT: number = Number(process.env.PORT) || 8000;
 app.use(cors());
 app.use(express.json());
 app.use(authVerifier);
-
-// Service URLs
-const USERS_SERVICE_URL: string = process.env.USERS_SERVICE_URL || 'http://service_users:8001';
-const ORDERS_SERVICE_URL: string = process.env.ORDERS_SERVICE_URL || 'http://service_orders:8002';
 
 // Circuit Breaker configuration
 const circuitOptions = {

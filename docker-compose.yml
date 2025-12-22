@@ -1,6 +1,8 @@
 services:
   api_gateway:
-    build: api_gateway
+    build:
+      context: .
+      dockerfile: ./api_gateway/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -10,8 +12,8 @@ services:
 
   service_users:
     build:
-      dockerfile: service_users.Dockerfile
       context: .
+      dockerfile: ./service_users/Dockerfile
     environment:
       - NODE_ENV=production
     networks:
@@ -19,8 +21,8 @@ services:
 
   service_orders:
     build:
-      dockerfile: service_orders.Dockerfile
       context: .
+      dockerfile: ./service_orders/Dockerfile
     environment:
       - NODE_ENV=production
     networks:

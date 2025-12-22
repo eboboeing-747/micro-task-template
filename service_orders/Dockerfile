@@ -18,6 +18,8 @@ RUN npm install
 
 COPY service_orders .
 
+RUN npm run build
+
 EXPOSE 8002
 
 CMD ["npm", "start"]
