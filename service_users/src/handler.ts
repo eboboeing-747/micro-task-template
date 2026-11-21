@@ -6,10 +6,7 @@ import type { Error } from '@local/types';
 
 export function extractUserId(req: Request): number | null {
     const userId: number | typeof NaN = parseInt(req.params.userId!);
-    
-    if (Number.isNaN(userId))
-        return null
-
+    if (Number.isNaN(userId)) return null;
     return userId;
 }
 
@@ -35,9 +32,9 @@ export function register(req: Request, res: Response): void {
 
     const newUserId: number | null = fakeUsersDb.add(newUser, isValid);
 
-    if (newUserId === null)
+    if (newUserId === null) {
         res.status(409).send();
-    else {
+    } else {
         const userAuth: UserAuth = {
             id: newUserId
         };
